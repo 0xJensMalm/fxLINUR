@@ -31,13 +31,13 @@ new p5((sketch) => {
       weight: 2,
     },
     {
-      name: "Spring Bloom",
+      name: "Gun Metal",
       palette: [
-        "#00f5d4",
-        "#00bbf9",
-        "#fee440",
-        "#f15bb5",
-        "#9b5de5",
+        "#d90429",
+        "#ef233c",
+        "#edf2f4",
+        "#8d99ae",
+        "#2b2d42",
         "#000000",
       ],
       weight: 3,
@@ -48,24 +48,25 @@ new p5((sketch) => {
     { name: "Subtle", value: 0.0003, weight: 1 },
     { name: "Medium", value: 0.0007, weight: 1 },
     { name: "Hard", value: 0.001, weight: 1 },
-    { name: "Extreme", value: 0.08, weight: 1 },
+    { name: "Extreme", value: 0.004, weight: 1 },
   ];
 
   sketch.setup = function () {
     canvasSize = sketch.min(sketch.windowWidth, sketch.windowHeight);
     sketch.createCanvas(canvasSize, canvasSize);
     sketch.rectMode(sketch.CENTER);
-    lineThickness = sketch.map($fx.rand(), 0, 1, 2, 4);
+
+    sketch.noiseSeed(seedValue);
+    sketch.randomSeed(seedValue);
+
+    lineThickness = sketch.map(sketch.random(), 0, 1, 2, 4);
 
     const selectedNoise = selectWeightedNoise(noiseOptions);
     noiseScale = selectedNoise.value; // Use selected noise value
     noiseName = selectedNoise.name; // Store noise name for feature recording
 
     sketch.strokeWeight(lineThickness);
-    sketch.noiseSeed(seedValue);
-    sketch.randomSeed(seedValue);
 
-    // Select a palette based on weights
     let selectedPalette = selectWeightedPalette(paletteOptions);
     pallete = selectedPalette.palette;
     paletteName = selectedPalette.name;
@@ -75,8 +76,6 @@ new p5((sketch) => {
   };
 
   sketch.draw = function () {
-    sketch.randomSeed(seedValue); // Reset random seed each frame for consistency
-    sketch.noiseSeed(seedValue); // Reset noise seed each frame if necessary
     if (!isRunning) return;
 
     for (let i = 0; i < particles.length; i++) {
@@ -104,7 +103,7 @@ new p5((sketch) => {
 
   function selectWeightedPalette(options) {
     const totalWeight = options.reduce((acc, option) => acc + option.weight, 0);
-    let random = Math.random() * totalWeight;
+    let random = sketch.random() * totalWeight; // Use p5's seeded random
     for (let option of options) {
       if (random < option.weight) {
         return { name: option.name, palette: option.palette };
@@ -115,7 +114,7 @@ new p5((sketch) => {
 
   function selectWeightedNoise(options) {
     const totalWeight = options.reduce((acc, option) => acc + option.weight, 0);
-    let random = Math.random() * totalWeight;
+    let random = sketch.random() * totalWeight; // Use p5's seeded random
     for (let option of options) {
       if (random < option.weight) {
         return option;
