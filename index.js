@@ -3,21 +3,43 @@ new p5((sketch) => {
   let particles = [];
   let isRunning = true;
   let seedValue = sketch.int($fx.rand() * 100000); // Seed for noise and random
+  let frameThickness = 30; // Frame thickness in pixels
 
   const paletteOptions = [
     {
       name: "Deep Sea",
-      palette: ["#07171b", "#133c3e", "#025250", "#fd7d02", "#fa9f03"],
+      palette: [
+        "#07171b",
+        "#133c3e",
+        "#025250",
+        "#fd7d02",
+        "#fa9f03",
+        "#000000",
+      ],
       weight: 1,
     },
     {
       name: "Sunset",
-      palette: ["#402334", "#6a0136", "#ac0349", "#d9042b", "#f14616"],
+      palette: [
+        "#402334",
+        "#6a0136",
+        "#ac0349",
+        "#d9042b",
+        "#f14616",
+        "#000000",
+      ],
       weight: 2,
     },
     {
       name: "Spring Bloom",
-      palette: ["#0f4c81", "#2274a5", "#32936f", "#03a678", "#f18f01"],
+      palette: [
+        "#00f5d4",
+        "#00bbf9",
+        "#fee440",
+        "#f15bb5",
+        "#9b5de5",
+        "#000000",
+      ],
       weight: 3,
     },
   ];
@@ -26,14 +48,14 @@ new p5((sketch) => {
     { name: "Subtle", value: 0.0003, weight: 1 },
     { name: "Medium", value: 0.0007, weight: 1 },
     { name: "Hard", value: 0.001, weight: 1 },
-    { name: "Extreme", value: 0.003, weight: 1 },
+    { name: "Extreme", value: 0.08, weight: 1 },
   ];
 
   sketch.setup = function () {
     canvasSize = sketch.min(sketch.windowWidth, sketch.windowHeight);
     sketch.createCanvas(canvasSize, canvasSize);
     sketch.rectMode(sketch.CENTER);
-    lineThickness = sketch.map($fx.rand(), 0, 1, 3, 5);
+    lineThickness = sketch.map($fx.rand(), 0, 1, 2, 4);
 
     const selectedNoise = selectWeightedNoise(noiseOptions);
     noiseScale = selectedNoise.value; // Use selected noise value
@@ -70,6 +92,14 @@ new p5((sketch) => {
     if (sketch.frameCount >= 800) {
       isRunning = false; // Stop the sketch after 800 frames
     }
+    // Drawing the frame
+    sketch.fill(0); // Set the color of the frame to black
+    sketch.noStroke(); // No border for the frame rectangles
+    // Draw rectangles on each side
+    sketch.rect(0, canvasSize / 2, frameThickness, canvasSize); // Left
+    sketch.rect(canvasSize, canvasSize / 2, frameThickness, canvasSize); // Right
+    sketch.rect(canvasSize / 2, 0, canvasSize, frameThickness); // Top
+    sketch.rect(canvasSize / 2, canvasSize, canvasSize, frameThickness); // Bottom
   };
 
   function selectWeightedPalette(options) {
@@ -180,14 +210,14 @@ function updateDOM() {
   // Update DOM only if necessary or during specific interactions
   document.body.style.background = "#000000";
   document.body.innerHTML = `
-    <div style="color: #ffffff;">
-      <p>hash: ${$fx.hash}</p>
-      <p>minter: ${$fx.minter}</p>
-      <p>iteration: ${$fx.iteration}</p>
-      <p>inputBytes: ${$fx.inputBytes}</p>
-      <p>context: ${$fx.context}</p>
-      <p>params:</p>
-      <pre>${$fx.stringifyParams($fx.getRawParams())}</pre>
-    </div>
-  `;
+      <div style="color: #ffffff;">
+        <p>hash: ${$fx.hash}</p>
+        <p>minter: ${$fx.minter}</p>
+        <p>iteration: ${$fx.iteration}</p>
+        <p>inputBytes: ${$fx.inputBytes}</p>
+        <p>context: ${$fx.context}</p>
+        <p>params:</p>
+        <pre>${$fx.stringifyParams($fx.getRawParams())}</pre>
+      </div>
+    `;
 }
