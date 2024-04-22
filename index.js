@@ -22,11 +22,23 @@ new p5((sketch) => {
     },
   ];
 
+  const noiseOptions = [
+    { name: "Subtle", value: 0.0003, weight: 1 },
+    { name: "Medium", value: 0.006, weight: 1 },
+    { name: "Hard", value: 0.001, weight: 1 },
+    { name: "Extreme", value: 0.01, weight: 1 },
+  ];
+
   sketch.setup = function () {
     canvasSize = sketch.min(sketch.windowWidth, sketch.windowHeight);
     sketch.createCanvas(canvasSize, canvasSize);
     sketch.rectMode(sketch.CENTER);
     lineThickness = sketch.map($fx.rand(), 0, 0.5, 3, 5);
+
+    const selectedNoise = selectWeightedNoise(noiseOptions);
+    noiseScale = selectedNoise.value; // Use selected noise value
+    noiseName = selectedNoise.name; // Store noise name for feature recording
+
     sketch.strokeWeight(lineThickness);
     sketch.noiseSeed(seedValue);
     sketch.randomSeed(seedValue);
@@ -71,19 +83,34 @@ new p5((sketch) => {
     }
   }
 
+  function selectWeightedNoise(options) {
+    const totalWeight = options.reduce((acc, option) => acc + option.weight, 0);
+    let random = Math.random() * totalWeight;
+    for (let option of options) {
+      if (random < option.weight) {
+        return option;
+      }
+      random -= option.weight;
+    }
+  }
+
   function newParticles() {
     sketch.background(0);
     sketch.shuffle(pallete, true); // Make sure shuffle uses a seeded random
     for (let i = 1; i < 5000; i++) {
       let posX = sketch.random() * 2 - 0.5;
       let posY = sketch.random() * 2 - 0.5;
-      particles.push(new Particle(posX * canvasSize, posY * canvasSize));
+      particles.push(
+        new Particle(posX * canvasSize, posY * canvasSize, noiseScale)
+      );
     }
     $fx.features({
       "Particle Count": particles.length,
       "Palette Colors": pallete.toString(),
       "Seed Value": seedValue,
       "Line Thickness": lineThickness.toFixed(2),
+      "Noise Scale": noiseScale.toFixed(5),
+      "Noise Type": noiseName,
     });
   }
 
