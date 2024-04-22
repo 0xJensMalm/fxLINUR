@@ -24,16 +24,16 @@ new p5((sketch) => {
 
   const noiseOptions = [
     { name: "Subtle", value: 0.0003, weight: 1 },
-    { name: "Medium", value: 0.006, weight: 1 },
+    { name: "Medium", value: 0.0007, weight: 1 },
     { name: "Hard", value: 0.001, weight: 1 },
-    { name: "Extreme", value: 0.01, weight: 1 },
+    { name: "Extreme", value: 0.003, weight: 1 },
   ];
 
   sketch.setup = function () {
     canvasSize = sketch.min(sketch.windowWidth, sketch.windowHeight);
     sketch.createCanvas(canvasSize, canvasSize);
     sketch.rectMode(sketch.CENTER);
-    lineThickness = sketch.map($fx.rand(), 0, 0.5, 3, 5);
+    lineThickness = sketch.map($fx.rand(), 0, 1, 3, 5);
 
     const selectedNoise = selectWeightedNoise(noiseOptions);
     noiseScale = selectedNoise.value; // Use selected noise value
@@ -106,7 +106,7 @@ new p5((sketch) => {
     }
     $fx.features({
       "Particle Count": particles.length,
-      "Palette Colors": pallete.toString(),
+      "Color Palette": paletteName,
       "Seed Value": seedValue,
       "Line Thickness": lineThickness.toFixed(2),
       "Noise Scale": noiseScale.toFixed(5),
@@ -115,11 +115,12 @@ new p5((sketch) => {
   }
 
   class Particle {
-    constructor(x, y) {
+    constructor(x, y, noiseScale) {
+      // Include noiseScale parameter
       this.x = x;
       this.y = y;
       this.s = 0;
-      this.noiseScale = 0.0005;
+      this.noiseScale = noiseScale; // Use the passed noiseScale
       this.life = 800;
       this.nn = 0;
       this.col = sketch.color(
@@ -130,7 +131,7 @@ new p5((sketch) => {
                 sketch.noise(
                   this.x * this.noiseScale,
                   this.y * this.noiseScale
-                ),
+                ), // Use the dynamic noiseScale
                 0,
                 1,
                 -3,
@@ -151,8 +152,7 @@ new p5((sketch) => {
     }
 
     move() {
-      // Use the dynamically set line thickness to determine maximum size
-      let maxS = sketch.map(this.life, 800, 0, lineThickness, 0); // Adjusting life span here too
+      let maxS = sketch.map(this.life, 800, 0, lineThickness, 0);
       let angle =
         sketch.noise(
           this.x * this.noiseScale,
@@ -167,7 +167,7 @@ new p5((sketch) => {
     }
 
     isDead() {
-      return this.life < 0;
+      return this.life <= 0;
     }
 
     run() {
