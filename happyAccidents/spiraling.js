@@ -5,6 +5,8 @@ new p5((sketch) => {
   let seedValue = sketch.int($fx.rand() * 100000); // Seed for noise and random
   let frameThickness = 30; // Frame thickness in pixels
 
+  let spiraling = true; // Boolean to control spiraling motion
+
   const paletteOptions = [
     {
       name: "Deep Sea",
@@ -16,7 +18,7 @@ new p5((sketch) => {
         "#fa9f03",
         "#000000", //black
       ],
-      weight: 2,
+      weight: 1,
     },
     {
       name: "Sunset",
@@ -31,7 +33,7 @@ new p5((sketch) => {
       weight: 2,
     },
     {
-      name: "Bloodmetal",
+      name: "Gun Metal",
       palette: [
         "#d90429",
         "#ef233c",
@@ -40,15 +42,15 @@ new p5((sketch) => {
         "#2b2d42",
         "#000000", //black
       ],
-      weight: 2,
+      weight: 3,
     },
   ];
 
   const noiseOptions = [
-    { name: "Subtle", value: 0.0003, weight: 2 },
+    { name: "Subtle", value: 0.0003, weight: 1 },
     { name: "Medium", value: 0.0007, weight: 1 },
-    { name: "Hard", value: 0.0008, weight: 1 },
-    { name: "Extreme", value: 0.001, weight: 2 },
+    { name: "Hard", value: 0.001, weight: 1 },
+    { name: "Extreme", value: 0.002, weight: 1 },
   ];
 
   sketch.setup = function () {
@@ -59,7 +61,7 @@ new p5((sketch) => {
     sketch.noiseSeed(seedValue);
     sketch.randomSeed(seedValue);
 
-    lineThickness = sketch.map(sketch.random(), 0, 1, 2.5, 4);
+    lineThickness = sketch.map(sketch.random(), 0, 1, 2, 4);
 
     const selectedNoise = selectWeightedNoise(noiseOptions);
     noiseScale = selectedNoise.value; // Use selected noise value
@@ -72,7 +74,7 @@ new p5((sketch) => {
     paletteName = selectedPalette.name;
 
     newParticles();
-    sketch.frameRate(45);
+    sketch.frameRate(30);
   };
 
   sketch.draw = function () {
@@ -145,13 +147,13 @@ new p5((sketch) => {
 
   class Particle {
     constructor(x, y, noiseScale) {
-      // Include noiseScale parameter
       this.x = x;
       this.y = y;
-      this.s = 0;
-      this.noiseScale = noiseScale; // Use the passed noiseScale
-      this.life = 800;
-      this.nn = 0;
+      this.s = 0; // Size of the particle
+      this.noiseScale = noiseScale; // Scale of noise influence
+      this.life = 800; // Lifetime of the particle
+      this.nn = 0; // Incremental value for noise calculation
+      // Color of the particle based on noise and palette
       this.col = sketch.color(
         pallete[
           sketch.int(
@@ -160,7 +162,7 @@ new p5((sketch) => {
                 sketch.noise(
                   this.x * this.noiseScale,
                   this.y * this.noiseScale
-                ), // Use the dynamic noiseScale
+                ),
                 0,
                 1,
                 -3,
@@ -175,12 +177,45 @@ new p5((sketch) => {
     }
 
     show() {
+      // Display the particle on the canvas
       sketch.noStroke();
       sketch.fill(this.col);
       sketch.rect(this.x, this.y, this.s, this.s);
     }
 
     move() {
+      // Choose the type of movement based on the spiraling boolean
+      if (spiraling) {
+        this.moveInSpiral();
+      } else {
+        this.standardMove();
+      }
+    }
+
+    moveInSpiral() {
+      // Spiraling motion
+      let angleIncrement = sketch.TAU / this.life; // Smaller angle as life decreases to create spiraling inwards
+      this.nn += 0.0001;
+      this.life--;
+
+      let angle =
+        sketch.noise(
+          this.x * this.noiseScale,
+          this.y * this.noiseScale,
+          this.nn
+        ) *
+          sketch.TAU +
+        angleIncrement;
+
+      let radius = sketch.map(this.life, 800, 0, 20, 1); // Decrease radius over life to spiral inwards
+      this.x += radius * sketch.cos(angle);
+      this.y += radius * sketch.sin(angle);
+
+      this.updateSize();
+    }
+
+    standardMove() {
+      // Normal movement
       let maxS = sketch.map(this.life, 800, 0, lineThickness, 0);
       let angle =
         sketch.noise(
@@ -190,16 +225,25 @@ new p5((sketch) => {
         ) * sketch.TAU;
       this.x += sketch.cos(angle);
       this.y += sketch.sin(angle);
-      this.s = sketch.noise(this.x * 0.001, this.y * 0.001, this.nn) * maxS;
       this.nn += 0.0001;
       this.life--;
+
+      this.updateSize();
+    }
+
+    updateSize() {
+      // Update the size of the particle based on its remaining life
+      let maxS = sketch.map(this.life, 800, 0, lineThickness, 0);
+      this.s = sketch.noise(this.x * 0.001, this.y * 0.001, this.nn) * maxS;
     }
 
     isDead() {
+      // Check if the particle's life has ended
       return this.life <= 0;
     }
 
     run() {
+      // Execute the particle's behaviors
       this.show();
       this.move();
     }
