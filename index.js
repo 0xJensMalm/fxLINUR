@@ -14,7 +14,7 @@ new p5((sketch) => {
         "#025250",
         "#fd7d02",
         "#fa9f03",
-        "#000000", //black
+        // "#000000", //black
       ],
       weight: 2,
     },
@@ -26,7 +26,7 @@ new p5((sketch) => {
         "#ac0349",
         "#d9042b",
         "#f14616",
-        "#000000", //black
+        //    "#000000", //black
       ],
       weight: 2,
     },
@@ -38,17 +38,50 @@ new p5((sketch) => {
         "#edf2f4",
         "#8d99ae",
         "#2b2d42",
-        "#000000", //black
+        //      "#000000", //black
+      ],
+      weight: 2,
+    },
+    {
+      name: "Forest Retreat",
+      palette: [
+        "#0b4f6c", // dark blue
+        "#01baef", // sky blue
+        "#fbfbff", // off white
+        "#040f16", // almost black
+        "#90be6d", // soft green
+      ],
+      weight: 2,
+    },
+    {
+      name: "Vintage Autumn",
+      palette: [
+        "#b84a62", // dusty rose
+        "#ab4e68", // deep mauve
+        "#cc9b6d", // golden tan
+        "#7a5c58", // muted brown
+        "#463f3a", // dark grey
+      ],
+      weight: 2,
+    },
+    {
+      name: "Arctic Neon",
+      palette: [
+        "#00f5d4", // neon teal
+        "#fae3d9", // blush pink
+        "#bbf0e8", // ice blue
+        "#282846", // midnight blue
+        "#8d2828", // crimson red
       ],
       weight: 2,
     },
   ];
 
   const noiseOptions = [
-    { name: "Subtle", value: 0.0003, weight: 2 },
+    // 5 = stor % 1 = liten %
+    { name: "Subtle", value: 0.0003, weight: 1 },
     { name: "Medium", value: 0.0007, weight: 1 },
     { name: "Hard", value: 0.0008, weight: 1 },
-    { name: "Extreme", value: 0.001, weight: 2 },
   ];
 
   sketch.setup = function () {
@@ -59,7 +92,7 @@ new p5((sketch) => {
     sketch.noiseSeed(seedValue);
     sketch.randomSeed(seedValue);
 
-    lineThickness = sketch.map(sketch.random(), 0, 1, 2.5, 4);
+    lineThickness = sketch.map(sketch.random(), 0, 1, 3, 4);
 
     const selectedNoise = selectWeightedNoise(noiseOptions);
     noiseScale = selectedNoise.value; // Use selected noise value
@@ -72,7 +105,7 @@ new p5((sketch) => {
     paletteName = selectedPalette.name;
 
     newParticles();
-    sketch.frameRate(45);
+    sketch.frameRate();
   };
 
   sketch.draw = function () {
@@ -126,7 +159,7 @@ new p5((sketch) => {
   function newParticles() {
     sketch.background(0);
     sketch.shuffle(pallete, true); // Make sure shuffle uses a seeded random
-    for (let i = 1; i < 5000; i++) {
+    for (let i = 1; i < 8000; i++) {
       let posX = sketch.random() * 2 - 0.5;
       let posY = sketch.random() * 2 - 0.5;
       particles.push(
@@ -164,7 +197,7 @@ new p5((sketch) => {
                 0,
                 1,
                 -3,
-                8.5
+                10
               ),
               0,
               4
@@ -181,17 +214,34 @@ new p5((sketch) => {
     }
 
     move() {
+      // 'maxS' controls the maximum size of the particles, which scales down as their 'life' decreases.
       let maxS = sketch.map(this.life, 800, 0, lineThickness, 0);
+
+      // Calculate angle based on noise, which determines the direction of the particle's movement.
       let angle =
         sketch.noise(
           this.x * this.noiseScale,
           this.y * this.noiseScale,
           this.nn
         ) * sketch.TAU;
+
+      // Update the particle's position based on the calculated angle.
       this.x += sketch.cos(angle);
       this.y += sketch.sin(angle);
+
+      // Enhance wave motion by adding a lateral movement component. Here, 'waveAmplitude' controls the
+      // strength of the lateral movement, and you can adjust this to see different wave patterns.
+      let waveAmplitude = 0.001; // This can be adjusted or made dynamic.
+      this.x += sketch.cos(angle + sketch.PI / 2) * waveAmplitude; // Adds lateral movement based on angle.
+      this.y += sketch.sin(angle + sketch.PI / 2) * waveAmplitude; // Adjusts y position for wave pattern.
+
+      // Update 's' based on a noise function, giving a dynamic size effect as they move.
       this.s = sketch.noise(this.x * 0.001, this.y * 0.001, this.nn) * maxS;
+
+      // Increment 'nn' to evolve the noise value over time, giving a fluid motion effect.
       this.nn += 0.0001;
+
+      // Decrease 'life' each frame, causing the particle to shrink and eventually disappear.
       this.life--;
     }
 
