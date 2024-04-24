@@ -5,9 +5,15 @@ new p5((sketch) => {
   let seedValue = sketch.int($fx.rand() * 100000); // Seed for noise and random
   let frameThickness = 30; // Frame thickness in pixels
 
+  let initialThicknessMin = 1; // Minimum initial thickness
+  let initialThicknessMax = 5; // Maximum initial thickness
+  let decayStart = 800; // Life value where decay starts
+  let decayEnd = 0; // Life value where decay ends
+  let endThickness = 0; // Thickness at the end of life
+
   const paletteOptions = [
     {
-      name: "Deep Sea",
+      name: "ARU",
       palette: [
         "#07171b",
         "#133c3e",
@@ -92,7 +98,13 @@ new p5((sketch) => {
     sketch.noiseSeed(seedValue);
     sketch.randomSeed(seedValue);
 
-    lineThickness = sketch.map(sketch.random(), 0, 1, 3, 4);
+    lineThickness = sketch.map(
+      sketch.random(),
+      0,
+      1,
+      initialThicknessMin,
+      initialThicknessMax
+    );
 
     const selectedNoise = selectWeightedNoise(noiseOptions);
     noiseScale = selectedNoise.value; // Use selected noise value
@@ -215,7 +227,13 @@ new p5((sketch) => {
 
     move() {
       // 'maxS' controls the maximum size of the particles, which scales down as their 'life' decreases.
-      let maxS = sketch.map(this.life, 800, 0, lineThickness, 0);
+      let maxS = sketch.map(
+        this.life,
+        decayStart,
+        decayEnd,
+        lineThickness,
+        endThickness
+      );
 
       // Calculate angle based on noise, which determines the direction of the particle's movement.
       let angle =
